@@ -45,6 +45,17 @@
     gap: 8px;
     margin-top: 10px;
   }
+.calendar-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.weekday {
+  font-weight: bold;
+  text-align: center;
+  padding-bottom: 4px;
+}
 
   .day {
     background: white;
@@ -111,7 +122,16 @@
     <button id="nextMonth">Next</button>
   </div>
   <h2 id="monthLabel"></h2>
-  <div class="calendar" id="calendar"></div>
+  <h2 id="monthLabel"></h2>
+	<div class="calendar-container">
+	  <div class="weekday">Mon</div>
+	  <div class="weekday">Tue</div>
+	  <div class="weekday">Wed</div>
+	  <div class="weekday">Thu</div>
+	  <div class="weekday">Fri</div>
+	</div>
+	<div id="calendar" class="calendar"></div>
+
 <p>
   ✅ Attended: <span id="attendedCount"></span><br>
   🏖️ Vacation: <span id="vacationCount"></span><br>
@@ -148,67 +168,80 @@
   };
 
   function renderCalendar(dateObj) {
-    calendar.innerHTML = '';
-    const year = dateObj.getFullYear();
-    const month = dateObj.getMonth();
-    const key = `attendance-${year}-${month + 1}`;
-    let stateMap = JSON.parse(localStorage.getItem(key)) || {};
+  const year = dateObj.getFullYear();
+  const month = dateObj.getMonth();
+  const key = `attendance-${year}-${month + 1}`;
+  let stateMap = JSON.parse(localStorage.getItem(key)) || {};
 
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const calendar = document.getElementById('calendar');
+  calendar.innerHTML = '';
 
-    let counts = { attended: 0, vacation: 0, holiday: 0, planned: 0 };
-    let totalWeekdays = 0;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun, 1=Mon, etc.
 
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day);
-      const dow = date.getDay();
-      if (dow === 0 || dow === 6) continue; // skip weekends
-      totalWeekdays++;
+  let counts = { attended: 0, vacation: 0, holiday: 0, planned: 0 };
+  let totalWeekdays = 0;
 
-      const div = document.createElement('div');
-      div.className = 'day';
-      div.textContent = day;
+  // Fill blank cells to align first weekday
+  let blankCells = (firstDay + 6) % 7; // Adjust so Monday = 0, skip weekends
+  for (let i = 0; i < blankCells; i++) {
+    const offsetDay = (i + 1) % 7;
+    if (offsetDay === 6 || offsetDay === 0) continue; // skip Sat/Sun
+    const empty = document.createElement('div');
+    calendar.appendChild(empty);
+  }
 
-      let state = stateMap[day] || "";
-      if (state) {
-        div.classList.add(state);
-        div.textContent += " " + LABELS[state];
-        counts[state]++;
-      }
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const dow = date.getDay();
+    if (dow === 0 || dow === 6) continue; // skip weekends
 
-      div.addEventListener('click', () => {
-        let index = STATES.indexOf(state);
-        index = (index + 1) % STATES.length;
-        state = STATES[index];
+    totalWeekdays++;
 
-        if (state) {
-          stateMap[day] = state;
-        } else {
-          delete stateMap[day];
-        }
+    const div = document.createElement('div');
+    div.className = 'day';
+    div.textContent = day;
 
-        localStorage.setItem(key, JSON.stringify(stateMap));
-        renderCalendar(current);
-      });
-
-      calendar.appendChild(div);
+    let state = stateMap[day] || "";
+    if (state) {
+      div.classList.add(state);
+      div.textContent += " " + LABELS[state];
+      counts[state]++;
     }
 
-    const available = totalWeekdays - counts.vacation - counts.holiday;
-    const required = Math.ceil(available * 0.6);
-    const projected = counts.attended + counts.planned;
-    const onTrack = projected >= required;
+    div.addEventListener('click', () => {
+      let index = STATES.indexOf(state);
+      index = (index + 1) % STATES.length;
+      state = STATES[index];
 
-    monthLabel.textContent = `${dateObj.toLocaleString('default', { month: 'long' })} ${year}`;
-    attendedCount.textContent = counts.attended;
-    vacationCount.textContent = counts.vacation;
-    holidayCount.textContent = counts.holiday;
-    plannedCount.textContent = counts.planned;
-    availableDaysEl.textContent = available;
-    requiredAttendanceEl.textContent = required;
-    projectedAttendanceEl.textContent = projected;
-    onTrackEl.textContent = onTrack ? "✅ On track" : "⚠️ Below target";
+      if (state) {
+        stateMap[day] = state;
+      } else {
+        delete stateMap[day];
+      }
+
+      localStorage.setItem(key, JSON.stringify(stateMap));
+      renderCalendar(current);
+    });
+
+    calendar.appendChild(div);
   }
+
+  const available = totalWeekdays - counts.vacation - counts.holiday;
+  const required = Math.floor(available * 0.6);
+  const projected = counts.attended + counts.planned;
+  const onTrack = projected >= required;
+
+  document.getElementById('monthLabel').textContent = `${dateObj.toLocaleString('default', { month: 'long' })} ${year}`;
+  attendedCount.textContent = counts.attended;
+  vacationCount.textContent = counts.vacation;
+  holidayCount.textContent = counts.holiday;
+  plannedCount.textContent = counts.planned;
+  availableDaysEl.textContent = available;
+  requiredAttendanceEl.textContent = required;
+  projectedAttendanceEl.textContent = projected;
+  onTrackEl.textContent = onTrack ? "✅ On track" : "⚠️ Below target";
+}
 
   prevBtn.addEventListener('click', () => {
     current.setMonth(current.getMonth() - 1);
