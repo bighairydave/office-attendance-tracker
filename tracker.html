@@ -3,24 +3,107 @@
 <head>
   <meta charset="UTF-8">
   <title>Office Attendance Tracker</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-    .calendar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
-    .day {
-      border: 1px solid #ccc;
-      padding: 10px;
-      text-align: center;
-      cursor: pointer;
-      user-select: none;
-    }
-    .attended { background-color: lightgreen; }
-    .vacation { background-color: lightblue; }
-    .holiday  { background-color: lightcoral; }
-    .planned  { background-color: gold; }
-    h2 { margin-bottom: 10px; }
-    .nav { margin-bottom: 10px; }
-    button { margin-right: 10px; }
-  </style>
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: #f8f9fa;
+    color: #333;
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+  }
+
+  h2 {
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  button {
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    border: none;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: #0056b3;
+  }
+
+  .calendar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .day {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 12px 0;
+    text-align: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+
+  .day:hover {
+    transform: scale(1.05);
+  }
+
+  .attended  { background-color: #d4edda; }
+  .vacation  { background-color: #cce5ff; }
+  .holiday   { background-color: #f8d7da; }
+  .planned   { background-color: #fff3cd; }
+
+  p {
+    margin-top: 20px;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  p span {
+    display: inline-block;
+    min-width: 30px;
+    font-weight: bold;
+  }
+
+  #onTrack {
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+
+  #onTrack:before {
+    content: '';
+    margin-right: 6px;
+  }
+
+  #onTrack:empty {
+    display: none;
+  }
+
+  #onTrack:contains("On track") {
+    background-color: #d4edda;
+    color: #155724;
+  }
+
+  #onTrack:contains("Below target") {
+    background-color: #fff3cd;
+    color: #856404;
+  }
+</style>
+
 </head>
 <body>
   <div class="nav">
