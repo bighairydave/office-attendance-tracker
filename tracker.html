@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Office Attendance Tracker</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .calendar { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; }
+    .day {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .attended { background-color: lightgreen; }
+    .vacation { background-color: lightblue; }
+    .holiday  { background-color: lightcoral; }
+    .planned  { background-color: gold; }
+    h2 { margin-bottom: 10px; }
+    .nav { margin-bottom: 10px; }
+    button { margin-right: 10px; }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <button id="prevMonth">Previous</button>
+    <button id="nextMonth">Next</button>
+  </div>
+  <h2 id="monthLabel"></h2>
+  <div class="calendar" id="calendar"></div>
+  <p>
+    ✅ Attended: <span id="attendedCount"></span> days<br>
+    🏖️ Vacation: <span id="vacationCount"></span><br>
+    🏦 Bank holidays: <span id="holidayCount"></span><br>
+    📅 Planned: <span id="plannedCount"></span>
+  </p>
+
+  <script>
+    const calendar = document.getElementById('calendar');
+    const monthLabel = document.getElementById('monthLabel');
+    const attendedCount = document.getElementById('attendedCount');
+    const vacationCount = document.getElementById('vacationCount');
+    const holidayCount = document.getElementById('holidayCount');
+    const plannedCount = document.getElementById('plannedCount');
+    const prevBtn = document.getElementById('prevMonth');
+    const nextBtn = document.getElementById('nextMonth');
+
+    let current = new Date();
+
+    const STATES = ["", "attended", "vacation", "holiday", "planned"];
+    const LABELS = {
+      attended: "✅",
+      vacation: "🏖️",
+      holiday:  "🏦",
+      planned:  "📅"
+    };
+
+    function renderCalendar(dateObj) {
+      calendar.innerHTML = '';
+      const year = dateObj.getFullYear();
+      const month = dateObj.getMonth();
+      const key = `attendance-${year}-${month + 1}`;
+      let stateMap = JSON.parse(localStorage.getItem(key)) || {};
+
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      let counts = { attended: 0, vacation: 0, holiday: 0, planned: 0 };
+
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const dow = date.getDay();
+        if (dow === 0 || dow === 6) continue; // skip weekends
+
+        const div = document.createElement('div');
+        div.className = 'day';
+        div.textContent = day;
+
+        let state = stateMap[day] || "";
+        if (state) {
+          div.classList.add(state);
+          div.textContent += " " + LABELS[state];
+          counts[state]++;
+        }
+
+        div.addEventListener('click', () => {
+          // Cycle state
+          let index = STATES.indexOf(state);
+          index = (index + 1) % STATES.length;
+          state = STATES[index];
+
+          if (state) {
+            stateMap[day] = state;
+          } else {
+            delete stateMap[day];
+          }
+
+          localStorage.setItem(key, JSON.stringify(stateMap));
+          renderCalendar(current);
+        });
+
+        calendar.appendChild(div);
+      }
+
+      monthLabel.textContent = `${dateObj.toLocaleString('default', { month: 'long' })} ${year}`;
+      attendedCount.textContent = counts.attended;
+      vacationCount.textContent = counts.vacation;
+      holidayCount.textContent = counts.holiday;
+      plannedCount.textContent = counts.planned;
+    }
+
+    prevBtn.addEventListener('click', () => {
+      current.setMonth(current.getMonth() - 1);
+      renderCalendar(current);
+    });
+
+    nextBtn.addEventListener('click', () => {
+      current.setMonth(current.getMonth() + 1);
+      renderCalendar(current);
+    });
+
+    renderCalendar(current);
+  </script>
+</body>
+</html>
