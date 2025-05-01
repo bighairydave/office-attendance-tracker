@@ -124,11 +124,11 @@
   <h2 id="monthLabel"></h2>
   <h2 id="monthLabel"></h2>
 	<div class="calendar-container">
-	  <div class="weekday">Mon</div>
-	  <div class="weekday">Tue</div>
-	  <div class="weekday">Wed</div>
-	  <div class="weekday">Thu</div>
-	  <div class="weekday">Fri</div>
+		<div class="weekday" id="mon">Mon</div>
+		<div class="weekday" id="tue">Tue</div>
+		<div class="weekday" id="wed">Wed</div>
+		<div class="weekday" id="thu">Thu</div>
+		<div class="weekday" id="fri">Fri</div>
 	</div>
 	<div id="calendar" class="calendar"></div>
 
@@ -167,7 +167,7 @@
     planned:  "📅"
   };
 
-  function renderCalendar(dateObj) {
+function renderCalendar(dateObj) {
   const year = dateObj.getFullYear();
   const month = dateObj.getMonth();
   const key = `attendance-${year}-${month + 1}`;
@@ -182,8 +182,8 @@
   let counts = { attended: 0, vacation: 0, holiday: 0, planned: 0 };
   let totalWeekdays = 0;
 
-  // Fill blank cells to align first weekday
-  let blankCells = (firstDay + 6) % 7; // Adjust so Monday = 0, skip weekends
+  // Fill blank cells to align first weekday (ignoring weekends)
+  let blankCells = (firstDay + 6) % 7; // Adjust so Monday = 0
   for (let i = 0; i < blankCells; i++) {
     const offsetDay = (i + 1) % 7;
     if (offsetDay === 6 || offsetDay === 0) continue; // skip Sat/Sun
@@ -191,10 +191,11 @@
     calendar.appendChild(empty);
   }
 
+  // Loop through all days of the month and render them
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
     const dow = date.getDay();
-    if (dow === 0 || dow === 6) continue; // skip weekends
+    if (dow === 0 || dow === 6) continue; // skip weekends (Sat/Sun)
 
     totalWeekdays++;
 
@@ -227,12 +228,13 @@
     calendar.appendChild(div);
   }
 
+  // Calculate required and projected attendance
   const available = totalWeekdays - counts.vacation - counts.holiday;
-  const required = Math.floor(available * 0.6);
+  const required = Math.floor(available * 0.6); // Updated per your employer's rule
   const projected = counts.attended + counts.planned;
   const onTrack = projected >= required;
 
-  document.getElementById('monthLabel').textContent = `${dateObj.toLocaleString('default', { month: 'long' })} ${year}`;
+  // Update UI with statistics
   attendedCount.textContent = counts.attended;
   vacationCount.textContent = counts.vacation;
   holidayCount.textContent = counts.holiday;
@@ -241,6 +243,9 @@
   requiredAttendanceEl.textContent = required;
   projectedAttendanceEl.textContent = projected;
   onTrackEl.textContent = onTrack ? "✅ On track" : "⚠️ Below target";
+
+  // Set month label (e.g., "March 2025")
+  document.getElementById('monthLabel').textContent = `${dateObj.toLocaleString('default', { month: 'long' })} ${year}`;
 }
 
   prevBtn.addEventListener('click', () => {
@@ -252,6 +257,53 @@
     current.setMonth(current.getMonth() + 1);
     renderCalendar(current);
   });
+function toggleColumnState(weekday) {
+  const year = current.getFullYear();
+  const month = current.getMonth();
+  const key = `attendance-${year}-${month + 1}`;
+  let stateMap = JSON.parse(localStorage.getItem(key)) || {};
+
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const weekdayMapping = {
+    mon: 1,
+    tue: 2,
+    wed: 3,
+    thu: 4,
+    fri: 5
+  };
+  const targetDay = weekdayMapping[weekday];
+
+  // Toggle state for all days in the column (same weekday)
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(year, month, day);
+    const dow = date.getDay();
+    
+    if (dow === targetDay) {
+      let currentState = stateMap[day] || "";
+      let index = STATES.indexOf(currentState);
+      index = (index + 1) % STATES.length;
+      currentState = STATES[index];
+
+      if (currentState) {
+        stateMap[day] = currentState;
+      } else {
+        delete stateMap[day];
+      }
+    }
+  }
+
+  localStorage.setItem(key, JSON.stringify(stateMap));
+  renderCalendar(current);
+}
+
+
+
+// Add event listeners to weekday headers
+document.getElementById('mon').addEventListener('click', () => toggleColumnState('mon'));
+document.getElementById('tue').addEventListener('click', () => toggleColumnState('tue'));
+document.getElementById('wed').addEventListener('click', () => toggleColumnState('wed'));
+document.getElementById('thu').addEventListener('click', () => toggleColumnState('thu'));
+document.getElementById('fri').addEventListener('click', () => toggleColumnState('fri'));
 
   renderCalendar(current);
 </script>
