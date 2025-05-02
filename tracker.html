@@ -114,9 +114,16 @@
     color: #856404;
   }
   .day.today {
-	  outline: 3px solid #ff9800;
+	  outline: 3px solid #9898ff;
 	  font-weight: bold;
 	}
+	.day.past-planned {
+/* 
+		background-color: #ffe0e0;
+ */
+		border: 2px dashed #cc0000;
+	}
+
 </style>
 
 </head>
@@ -200,10 +207,14 @@ function renderCalendar(dateObj) {
     const date = new Date(year, month, day);
     const dow = date.getDay();
     const today = new Date();
-		const isToday =
-			date.getFullYear() === today.getFullYear() &&
-			date.getMonth() === today.getMonth() &&
-			date.getDate() === today.getDate();
+    const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const dateMidnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    const isToday = dateMidnight.getTime() === todayMidnight.getTime();
+// 		const isToday =
+// 			date.getFullYear() === today.getFullYear() &&
+// 			date.getMonth() === today.getMonth() &&
+// 			date.getDate() === today.getDate();
     if (dow === 0 || dow === 6) continue; // skip weekends (Sat/Sun)
 
     totalWeekdays++;
@@ -217,6 +228,19 @@ function renderCalendar(dateObj) {
 
 
     let state = stateMap[day] || "";
+    
+		const isPast = dateMidnight < todayMidnight;
+		
+		
+		
+		if (isToday) {
+			div.classList.add('today');
+		}
+		
+		if (state === "planned" && isPast) {
+			div.classList.add('past-planned');
+		}
+
     if (state) {
       div.classList.add(state);
       div.textContent += " " + LABELS[state];
