@@ -113,6 +113,10 @@
     background-color: #fff3cd;
     color: #856404;
   }
+  .day.today {
+	  outline: 3px solid #ff9800;
+	  font-weight: bold;
+	}
 </style>
 
 </head>
@@ -195,6 +199,11 @@ function renderCalendar(dateObj) {
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
     const dow = date.getDay();
+    const today = new Date();
+		const isToday =
+			date.getFullYear() === today.getFullYear() &&
+			date.getMonth() === today.getMonth() &&
+			date.getDate() === today.getDate();
     if (dow === 0 || dow === 6) continue; // skip weekends (Sat/Sun)
 
     totalWeekdays++;
@@ -202,6 +211,10 @@ function renderCalendar(dateObj) {
     const div = document.createElement('div');
     div.className = 'day';
     div.textContent = day;
+    if (isToday) {
+			div.classList.add('today');
+		};
+
 
     let state = stateMap[day] || "";
     if (state) {
@@ -277,6 +290,7 @@ function toggleColumnState(weekday) {
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
     const dow = date.getDay();
+
     
     if (dow === targetDay) {
       let currentState = stateMap[day] || "";
