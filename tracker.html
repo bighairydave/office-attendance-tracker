@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Office Attendance Tracker</title>
+	<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABpUlEQVRYR+2XwUoDQRSGv4vYh5BkO0E7STo5hRIbE8sRkTgENpHF4l2oYiYzTUSVjIzggZch1vgFv6nL3RyzztwIYmV79+/3T1FdXcMJxgjQAnAFkA6RgUSYA0j8EXRpuAVzFo1+geocHxM3BrY3nwEk9BvYCrhI7gBlDmc5XxSSleAF4FVgNNtd7gS2XkJvPbmubPBysykYEdMF6V/h+ROUMvwZk/gzkr7PHSDuNc4DtGeJel5fZWu2/YryJQNoj/EAs5kUONtdRliw++SUOfCvGqHUlF70ikz7czq8OYGChlQ3BMTbULGaOEv5u1BddTScA9A4kAZMGZ9T+jrcprhVEoYTDxJx9XWDwW5KkpIkAAoEoYBiTGz6SyjsvM1wR6Z+UzpxKPCX4HxzVEmWYOV+AAAAABJRU5ErkJggg==" />
 <style>
   body {
     font-family: system-ui, sans-serif;
@@ -230,8 +231,6 @@ function renderCalendar(dateObj) {
     let state = stateMap[day] || "";
     
 		const isPast = dateMidnight < todayMidnight;
-		
-		
 		
 		if (isToday) {
 			div.classList.add('today');
