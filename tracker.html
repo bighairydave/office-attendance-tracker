@@ -179,11 +179,13 @@
     planned:  "📅"
   };
 
-function renderCalendar(dateObj) {
+async function renderCalendar(dateObj) {
   const year = dateObj.getFullYear();
   const month = dateObj.getMonth();
   const key = `attendance-${year}-${month + 1}`;
   let stateMap = JSON.parse(localStorage.getItem(key)) || {};
+  
+  const bankHolidays = await fetchBankHolidays();
 
   const calendar = document.getElementById('calendar');
   calendar.innerHTML = '';
@@ -212,13 +214,14 @@ function renderCalendar(dateObj) {
     const dateMidnight = new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
     const isToday = dateMidnight.getTime() === todayMidnight.getTime();
-// 		const isToday =
-// 			date.getFullYear() === today.getFullYear() &&
-// 			date.getMonth() === today.getMonth() &&
-// 			date.getDate() === today.getDate();
     if (dow === 0 || dow === 6) continue; // skip weekends (Sat/Sun)
 
     totalWeekdays++;
+    
+    const ymd = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    if (!stateMap[day] && bankHolidays.includes(ymd)) {
+      stateMap[day] = 'holiday'; // automatically mark it
+    }
 
     const div = document.createElement('div');
     div.className = 'day';
@@ -342,6 +345,32 @@ document.getElementById('wed').addEventListener('click', () => toggleColumnState
 document.getElementById('thu').addEventListener('click', () => toggleColumnState('thu'));
 document.getElementById('fri').addEventListener('click', () => toggleColumnState('fri'));
 
+  
+  async function fetchBankHolidays() {
+  const stored = JSON.parse(localStorage.getItem('bankHolidays') || '{}');
+  const currentYear = new Date().getFullYear();
+
+  if (stored[currentYear]) {
+    return stored[currentYear];
+  }
+
+  try {
+    const res = await fetch('https://www.gov.uk/bank-holidays.json');
+    const data = await res.json();
+    const holidays = data['england-and-wales'].events
+      .filter(event => new Date(event.date).getFullYear() === currentYear)
+      .map(event => event.date);
+
+    // Store all years seen so far
+    stored[currentYear] = holidays;
+    localStorage.setItem('bankHolidays', JSON.stringify(stored));
+    return holidays;
+  } catch (e) {
+    console.error("Could not fetch bank holidays:", e);
+    return [];
+  }
+}
+  
   renderCalendar(current);
 </script>
 
